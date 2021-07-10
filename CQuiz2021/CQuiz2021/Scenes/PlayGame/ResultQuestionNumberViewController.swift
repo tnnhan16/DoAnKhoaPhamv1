@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SocketIO
 
 class ResultQuestionNumberViewController: Base_ViewController, UITableViewDelegate, UITableViewDataSource {
     
@@ -19,7 +20,7 @@ class ResultQuestionNumberViewController: Base_ViewController, UITableViewDelega
     @IBOutlet weak var lblTitleResult: UILabel!
     var isFinish:Bool = false
     var numberQuestion:String = ""
-    
+    var maPhong:String = "\(String(UserDefaults.standard.string(forKey: "MaPhong") ?? ""))"
     var resultQuestionArr:[ResultQuestion] = []
     
     override func viewDidLoad() {
@@ -33,13 +34,10 @@ class ResultQuestionNumberViewController: Base_ViewController, UITableViewDelega
         viewBody.layer.borderColor = UIColor.darkGray.cgColor
         viewBody.layer.borderWidth = 1
         viewBody.layer.masksToBounds = true
-        
         viewTitle.layer.cornerRadius = 25
         let gradient = getGradientLayer(bounds: viewTitle.bounds)
         viewTitle.backgroundColor = gradientColor(bounds: viewTitle.bounds, gradientLayer: gradient)
         viewTitle.layer.masksToBounds = true
-        
-        
         lblTitleResult.textColor = .white
     }
     
@@ -55,8 +53,8 @@ class ResultQuestionNumberViewController: Base_ViewController, UITableViewDelega
         let gradient = CAGradientLayer()
         gradient.frame = bounds
         gradient.colors = [UIColor.systemPink.cgColor,UIColor.purple.cgColor]
-        gradient.startPoint = CGPoint(x: 0.0, y: 0.5)
-        gradient.endPoint = CGPoint(x: 1.0, y: 0.5)
+        gradient.startPoint = CGPoint(x: 0.0, y: 1.0)
+        gradient.endPoint = CGPoint(x: 1.0, y: 1.0)
         return gradient
     }
     
@@ -64,32 +62,31 @@ class ResultQuestionNumberViewController: Base_ViewController, UITableViewDelega
         return 60
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        return resultQuestionArr.count
-        return 5
+        return resultQuestionArr.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = self.tbvDanhSachDiem.dequeueReusableCell(withIdentifier: "ResultQuestionNumberTableViewCell", for: indexPath) as! ResultQuestionNumberTableViewCell
         cell.lblThuHang.isHidden = true
-//        if(resultQuestionArr[indexPath.row].index == 0) {
-//            cell.imgMedal.image = UIImage(named: "gold-medal")
-//        } else if (resultQuestionArr[indexPath.row].index == 1) {
-//            cell.imgMedal.image = UIImage(named: "silver-medal")
-//        } else if(resultQuestionArr[indexPath.row].index == 2) {
-//            cell.imgMedal.image = UIImage(named: "bronze-medal")
-//        } else if(resultQuestionArr[indexPath.row].index > 2){
-//            cell.lblThuHang.isHidden = false
-//            cell.lblThuHang.text = String(resultQuestionArr[indexPath.row].index + 1)
-//        }
-//        cell.lblName.text = resultQuestionArr[indexPath.row].player_nickname
-//        cell.lblDiem.text = String(resultQuestionArr[indexPath.row].point)
-        cell.lblName.text = "Test 01"
-        cell.lblDiem.text = "50"
-        cell.imgMedal.image = UIImage(named: "gold-medal")
+        if(resultQuestionArr[indexPath.row].index == 0) {
+            cell.imgMedal.image = UIImage(named: "gold-medal")
+        } else if (resultQuestionArr[indexPath.row].index == 1) {
+            cell.imgMedal.image = UIImage(named: "silver-medal")
+        } else if(resultQuestionArr[indexPath.row].index == 2) {
+            cell.imgMedal.image = UIImage(named: "bronze-medal")
+        } else if(resultQuestionArr[indexPath.row].index > 2){
+            cell.lblThuHang.isHidden = false
+            cell.lblThuHang.text = String(resultQuestionArr[indexPath.row].index + 1)
+        }
+        cell.lblName.text = resultQuestionArr[indexPath.row].player_nickname
+        cell.lblDiem.text = String(resultQuestionArr[indexPath.row].point)
         return cell
     }
     func socketPlayGame(){
         let socket = manager.defaultSocket
+        manager.config = SocketIOClientConfiguration(
+            arrayLiteral: .compress, .connectParams(["data": self.maPhong])
+        )
         socket.on("S_SendResultQuestionNumberBroadCast_C") { [self] data, ack in
             self.resultQuestionArr = []
             let nSArray = data as NSArray

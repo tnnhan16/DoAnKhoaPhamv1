@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SocketIO
 
 class Player_ViewController: Base_ViewController, UITableViewDelegate, UITableViewDataSource {
 
@@ -28,7 +29,7 @@ class Player_ViewController: Base_ViewController, UITableViewDelegate, UITableVi
         navigationController?.navigationBar.isHidden = false
         self.tbvPlayer.delegate = self
         self.tbvPlayer.dataSource = self
-        lblRoomTitle.text = self.txtTitle
+        lblRoomTitle.text = self.txtPin
         viewPhong.layer.cornerRadius = 10
         viewSoNguoiChoi.layer.cornerRadius = 10
         let gradient = getGradientLayer(bounds: lblRoomTitle.bounds)
@@ -59,16 +60,22 @@ class Player_ViewController: Base_ViewController, UITableViewDelegate, UITableVi
     
     func goToConnectServer(){
         let socket = manager.defaultSocket
+        manager.config = SocketIOClientConfiguration(
+            arrayLiteral: .compress, .connectParams(["data": "\(String(self.txtPin ?? ""))"])
+        )
+        
         socket.on("connect") { data, ack in
             socket.emit("C_AddGroup_S", ["setq_pin":self.txtPin])
         }
         socket.on("S_SendPlayerList_C") { [self] data, ack in
             self.playerArr = []
             let nSArray = data as NSArray
-            for item in (nSArray[0] as! NSArray) {
-                let disArray = item as! NSDictionary
-                let player =  Player(disArray["player_nickname"] as! String,disArray["setq_id"] as! String,disArray["player_avatar"] as! String,disArray["player_flag"] as! Int)
-                playerArr.append(player)
+            if nSArray.count > 0{
+                for item in (nSArray[0] as! NSArray) {
+                    let disArray = item as! NSDictionary
+                    let player =  Player(disArray["player_nickname"] as! String,disArray["setq_id"] as! String,disArray["player_avatar"] as! String,disArray["player_flag"] as! Int)
+                    playerArr.append(player)
+                }
             }
             lblPlayers.text = String(playerArr.count)
             let gradient = getGradientLayer(bounds: lblPlayers.bounds)

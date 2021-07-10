@@ -26,6 +26,7 @@ class ViewController: Base_ViewController, UIImagePickerControllerDelegate, UINa
         super.viewDidLoad()
         design()
         navigationController?.navigationBar.isHidden = true
+        UserDefaults.standard.set("Chua", forKey: "DaTraLoi")
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -81,6 +82,7 @@ class ViewController: Base_ViewController, UIImagePickerControllerDelegate, UINa
                         guard let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String:Any] else { return }
                         
                         if( json["result"] as! Int == 1 ){
+                            UserDefaults.standard.set(self.txtPin.text!, forKey: "MaPhong")
                             self.player_id = json["player_id"] as! String
                             BaseService.uploadFile(urlStr: AppConstant.uploadAvatarUrl, dataFile: (self.imgAvatar.image?.pngData())!, fileName: "avatar")
                             DispatchQueue.main.async {
